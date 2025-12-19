@@ -48,7 +48,7 @@ const getAllOrders = async (
       },
       {
         path: "paymentId",
-        select: ["paymentStatus", "transactionId", "amount"],
+        select: ["transactionId", "paymentURL"],
       },
       {
         path: "userId",
@@ -96,7 +96,7 @@ const getAllOrdersByUser = async (
       },
       {
         path: "paymentId",
-        select: ["transactionId"],
+        select: ["transactionId", "paymentURL"],
       },
       {
         path: "userId",
@@ -144,7 +144,10 @@ const getSingleOrder = async (orderId: string, vendorUserId: string) => {
         "specifications",
       ],
     },
-    { path: "paymentId", select: ["paymentStatus", "transactionId", "amount"] },
+    {
+      path: "paymentId",
+      select: ["transactionId", "paymentURL"],
+    },
     { path: "userId", select: ["email", "role", "status"] },
   ]);
 
@@ -177,7 +180,10 @@ const getSingleOrderForUser = async (orderId: string, userId: string) => {
         "specifications",
       ],
     },
-    { path: "paymentId", select: ["paymentStatus", "transactionId", "amount"] },
+    {
+      path: "paymentId",
+      select: ["transactionId", "paymentURL"],
+    },
     { path: "userId", select: ["email", "role", "status"] },
   ]);
 
@@ -317,6 +323,7 @@ const createOrder = async (payload: IOrder, userId: string) => {
 
       // Persist Stripe session details on payment
       payment.transactionId = checkoutSession.id;
+      payment.paymentURL = checkoutSession.url;
       payment.paymentGateway = checkoutSession;
       await payment.save({ session });
 
