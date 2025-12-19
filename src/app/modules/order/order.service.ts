@@ -37,7 +37,14 @@ const getAllOrders = async (
     Order.find({ productId: { $in: vendorProductIds } }).populate([
       {
         path: "productId",
-        select: ["title", "price", "category", "thumbnail"],
+        select: [
+          "title",
+          "price",
+          "category",
+          "thumbnail",
+          "description",
+          "specifications",
+        ],
       },
       {
         path: "paymentId",
@@ -78,7 +85,14 @@ const getAllOrdersByUser = async (
     Order.find({ userId }).populate([
       {
         path: "productId",
-        select: ["title", "price", "category", "thumbnail"],
+        select: [
+          "title",
+          "price",
+          "category",
+          "thumbnail",
+          "description",
+          "specifications",
+        ],
       },
       {
         path: "paymentId",
@@ -120,7 +134,15 @@ const getSingleOrder = async (orderId: string, vendorUserId: string) => {
   const order = await Order.findById(orderId).populate([
     {
       path: "productId",
-      select: ["title", "price", "category", "thumbnail", "vendorId"],
+      select: [
+        "title",
+        "price",
+        "category",
+        "thumbnail",
+        "vendorId",
+        "description",
+        "specifications",
+      ],
     },
     { path: "paymentId", select: ["paymentStatus", "transactionId", "amount"] },
     { path: "userId", select: ["email", "role", "status"] },
@@ -144,7 +166,17 @@ const getSingleOrder = async (orderId: string, vendorUserId: string) => {
 // Get single order for customer
 const getSingleOrderForUser = async (orderId: string, userId: string) => {
   const order = await Order.findOne({ _id: orderId, userId }).populate([
-    { path: "productId", select: ["title", "price", "category", "thumbnail"] },
+    {
+      path: "productId",
+      select: [
+        "title",
+        "price",
+        "category",
+        "thumbnail",
+        "description",
+        "specifications",
+      ],
+    },
     { path: "paymentId", select: ["paymentStatus", "transactionId", "amount"] },
     { path: "userId", select: ["email", "role", "status"] },
   ]);
