@@ -204,11 +204,16 @@ const createOrder = async (payload: IOrder, userId: string) => {
       // Deduct stock & calculate payable amount
       product.stock -= payload.quantity;
       await product.save({ session });
-      const amount = Number((product?.price * payload.quantity).toFixed(2));
+      const shippingFee = Number(payload.shippingFee ?? 0);
+      const productTotal = Number(
+        (product?.price * payload.quantity).toFixed(2)
+      );
+      const amount = Number((productTotal + shippingFee).toFixed(2));
 
       // Attach userId & amount to order payload
       payload.userId = new mongoose.Types.ObjectId(userId);
       payload.amount = amount;
+      payload.shippingFee = shippingFee;
 
       // Create order
       const [order] = await Order.create([payload], { session });
@@ -232,30 +237,47 @@ const createOrder = async (payload: IOrder, userId: string) => {
       await order.save({ session });
 
       // Create Stripe Checkout session
+      const lineItems = [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: product.title,
+              description: product.description ?? "Order payment",
+            },
+            unit_amount: Math.round(product.price * 100), // in cents
+          },
+          quantity: payload.quantity,
+        },
+      ];
+
+      if (shippingFee > 0) {
+        lineItems.push({
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: "Shipping Fee",
+              description: "Shipping charge",
+            },
+            unit_amount: Math.round(shippingFee * 100),
+          },
+          quantity: 1,
+        });
+      }
+
       const checkoutSession = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
         mode: "payment",
         customer_email: customer.email,
         expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // 30 minutes
-        line_items: [
-          {
-            price_data: {
-              currency: "usd",
-              product_data: {
-                name: product.title,
-                description: product.description ?? "Order payment",
-              },
-              unit_amount: Math.round(product.price * 100), // in cents
-            },
-            quantity: payload.quantity,
-          },
-        ],
+        line_items: lineItems,
         metadata: {
           orderId: order._id.toString(),
           paymentId: payment._id.toString(),
           productId: payload.productId.toString(),
           userId: userId.toString(),
           quantity: payload.quantity.toString(),
+          shippingFee: shippingFee.toString(),
         },
         success_url: `${envVars.STRIPE.SUCCESS_FRONTEND_URL}?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: envVars.STRIPE.CANCELED_FRONTEND_URL,

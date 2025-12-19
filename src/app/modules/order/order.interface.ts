@@ -17,6 +17,7 @@ export interface IOrder {
   paymentId?: Types.ObjectId;
   quantity: number;
   amount: number;
+  shippingFee: number;
   orderStatus: OrderStatus;
   paymentStatus?: PaymentStatus;
 }

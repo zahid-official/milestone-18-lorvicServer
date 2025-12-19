@@ -10,6 +10,7 @@ const orderSchema = new Schema<IOrder>(
     paymentId: { type: Schema.Types.ObjectId, ref: "Payment" },
     quantity: { type: Number, required: true },
     amount: { type: Number, required: true },
+    shippingFee: { type: Number, required: true },
     orderStatus: {
       type: String,
       enum: Object.values(OrderStatus),

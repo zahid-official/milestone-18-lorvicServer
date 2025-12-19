@@ -22,6 +22,16 @@ const createOrderSchema = z.object({
     })
     .int({ error: "Quantity must be an integer." })
     .min(1, { error: "Quantity must be at least 1." }),
+
+  // Shipping
+  shippingFee: z
+    .number({
+      error: (issue) =>
+        issue.input === undefined
+          ? "Shipping Fee is required"
+          : "Shipping Fee must be a number",
+    })
+    .nonnegative({ error: "Shipping Fee cannot be negative" }),
 });
 
 export default createOrderSchema;
