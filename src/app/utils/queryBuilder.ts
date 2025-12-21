@@ -52,7 +52,7 @@ class QueryBuilder<T> {
   // Method to implement pagination
   paginate(): this {
     const page = Number(this.query?.page) || 1;
-    const limit = Number(this.query?.limit) || 12;
+    const limit = Number(this.query?.limit) || 9;
     const skip = (page - 1) * limit;
     this.modelQuery = this.modelQuery.skip(skip).limit(limit);
     return this;
@@ -75,7 +75,7 @@ class QueryBuilder<T> {
       queryConditions
     );
     const page = Number(this.query?.page) || 1;
-    const limit = Number(this.query?.limit) || 12;
+    const limit = Number(this.query?.limit) || 9;
     const totalPage = Math.ceil(totalDocs / limit);
 
     return { page, limit, totalPage, totalDocs };

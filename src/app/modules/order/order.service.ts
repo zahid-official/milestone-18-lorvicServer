@@ -317,7 +317,7 @@ const createOrder = async (payload: IOrder, userId: string) => {
           quantity: payload.quantity.toString(),
           shippingFee: shippingFee.toString(),
         },
-        success_url: `${envVars.STRIPE.SUCCESS_FRONTEND_URL}?session_id={CHECKOUT_SESSION_ID}`,
+        success_url: `${envVars.STRIPE.SUCCESS_FRONTEND_URL}?order_id=${order._id.toString()}`,
         cancel_url: envVars.STRIPE.CANCELED_FRONTEND_URL,
       });
 
@@ -388,7 +388,7 @@ const cancelOrder = async (orderId: string, userId: string) => {
       if (order.paymentId) {
         await Payment.findByIdAndUpdate(
           order.paymentId,
-          { paymentStatus: PaymentStatus.FAILED },
+          { paymentStatus: PaymentStatus.FAILED, paymentURL: null },
           { session }
         );
       }
