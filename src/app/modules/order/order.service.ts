@@ -36,6 +36,18 @@ const getAllOrders = async (
   const queryBuilder = new QueryBuilder<IOrder>(
     Order.find({ productId: { $in: vendorProductIds } }).populate([
       {
+        path: "userId",
+        select: ["email", "role", "status"],
+      },
+      {
+        path: "customerId",
+        select: ["name", "email", "phone", "address"],
+      },
+      {
+        path: "vendorId",
+        select: ["name", "email"],
+      },
+      {
         path: "productId",
         select: [
           "title",
@@ -49,10 +61,6 @@ const getAllOrders = async (
       {
         path: "paymentId",
         select: ["transactionId", "paymentURL"],
-      },
-      {
-        path: "userId",
-        select: ["email", "role", "status"],
       },
     ]),
     query
@@ -133,6 +141,18 @@ const getSingleOrder = async (orderId: string, vendorUserId: string) => {
 
   const order = await Order.findById(orderId).populate([
     {
+      path: "userId",
+      select: ["email", "role", "status"],
+    },
+    {
+      path: "customerId",
+      select: ["name", "email", "phone", "address"],
+    },
+    {
+      path: "vendorId",
+      select: ["name", "email"],
+    },
+    {
       path: "productId",
       select: [
         "title",
@@ -148,7 +168,6 @@ const getSingleOrder = async (orderId: string, vendorUserId: string) => {
       path: "paymentId",
       select: ["transactionId", "paymentURL"],
     },
-    { path: "userId", select: ["email", "role", "status"] },
   ]);
 
   if (!order) {
@@ -217,20 +236,6 @@ const createOrder = async (payload: IOrder, userId: string) => {
         throw new AppError(httpStatus.NOT_FOUND, "Product not found");
       }
 
-      // Check if product already ordered by user and payment status is unpaid
-      const existingOrder = await Order.findOne({
-        productId: payload.productId,
-        userId: userId,
-        paymentStatus: PaymentStatus.UNPAID,
-      }).session(session);
-
-      if (existingOrder) {
-        throw new AppError(
-          httpStatus.BAD_REQUEST,
-          "You have already ordered this product and the payment is still pending. Please complete the payment before placing a new order or cancel the existing order."
-        );
-      }
-
       // Ensure stock availability
       if (payload.quantity > product.stock) {
         throw new AppError(
@@ -250,6 +255,8 @@ const createOrder = async (payload: IOrder, userId: string) => {
 
       // Attach userId & amount to order payload
       payload.userId = new mongoose.Types.ObjectId(userId);
+      payload.customerId = new mongoose.Types.ObjectId(customer._id);
+      payload.vendorId = new mongoose.Types.ObjectId(product.vendorId);
       payload.amount = amount;
       payload.shippingFee = shippingFee;
 
@@ -317,7 +324,9 @@ const createOrder = async (payload: IOrder, userId: string) => {
           quantity: payload.quantity.toString(),
           shippingFee: shippingFee.toString(),
         },
-        success_url: `${envVars.STRIPE.SUCCESS_FRONTEND_URL}?order_id=${order._id.toString()}`,
+        success_url: `${
+          envVars.STRIPE.SUCCESS_FRONTEND_URL
+        }?order_id=${order._id.toString()}`,
         cancel_url: envVars.STRIPE.CANCELED_FRONTEND_URL,
       });
 
