@@ -6,6 +6,8 @@ import { PaymentStatus } from "../payment/payment.interface";
 const orderSchema = new Schema<IOrder>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    customerId: { type: Schema.Types.ObjectId, ref: "Customer", required: true },
+    vendorId: { type: Schema.Types.ObjectId, ref: "Vendor", required: true },
     productId: { type: Schema.Types.ObjectId, ref: "Product", required: true },
     paymentId: { type: Schema.Types.ObjectId, ref: "Payment" },
     quantity: { type: Number, required: true },

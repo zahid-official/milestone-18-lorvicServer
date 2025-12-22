@@ -36,16 +36,31 @@ const getAllOrders = async (
   const queryBuilder = new QueryBuilder<IOrder>(
     Order.find({ productId: { $in: vendorProductIds } }).populate([
       {
+        path: "userId",
+        select: ["email", "role", "status"],
+      },
+      {
+        path: "customerId",
+        select: ["name", "email", "phone", "address"],
+      },
+      {
+        path: "vendorId",
+        select: ["name", "email"],
+      },
+      {
         path: "productId",
-        select: ["title", "price", "category", "thumbnail"],
+        select: [
+          "title",
+          "price",
+          "category",
+          "thumbnail",
+          "description",
+          "specifications",
+        ],
       },
       {
         path: "paymentId",
-        select: ["paymentStatus", "transactionId", "amount"],
-      },
-      {
-        path: "userId",
-        select: ["email", "role", "status"],
+        select: ["transactionId", "paymentURL"],
       },
     ]),
     query
@@ -78,11 +93,18 @@ const getAllOrdersByUser = async (
     Order.find({ userId }).populate([
       {
         path: "productId",
-        select: ["title", "price", "category", "thumbnail"],
+        select: [
+          "title",
+          "price",
+          "category",
+          "thumbnail",
+          "description",
+          "specifications",
+        ],
       },
       {
         path: "paymentId",
-        select: ["transactionId"],
+        select: ["transactionId", "paymentURL"],
       },
       {
         path: "userId",
@@ -119,11 +141,33 @@ const getSingleOrder = async (orderId: string, vendorUserId: string) => {
 
   const order = await Order.findById(orderId).populate([
     {
-      path: "productId",
-      select: ["title", "price", "category", "thumbnail", "vendorId"],
+      path: "userId",
+      select: ["email", "role", "status"],
     },
-    { path: "paymentId", select: ["paymentStatus", "transactionId", "amount"] },
-    { path: "userId", select: ["email", "role", "status"] },
+    {
+      path: "customerId",
+      select: ["name", "email", "phone", "address"],
+    },
+    {
+      path: "vendorId",
+      select: ["name", "email"],
+    },
+    {
+      path: "productId",
+      select: [
+        "title",
+        "price",
+        "category",
+        "thumbnail",
+        "vendorId",
+        "description",
+        "specifications",
+      ],
+    },
+    {
+      path: "paymentId",
+      select: ["transactionId", "paymentURL"],
+    },
   ]);
 
   if (!order) {
@@ -144,8 +188,21 @@ const getSingleOrder = async (orderId: string, vendorUserId: string) => {
 // Get single order for customer
 const getSingleOrderForUser = async (orderId: string, userId: string) => {
   const order = await Order.findOne({ _id: orderId, userId }).populate([
-    { path: "productId", select: ["title", "price", "category", "thumbnail"] },
-    { path: "paymentId", select: ["paymentStatus", "transactionId", "amount"] },
+    {
+      path: "productId",
+      select: [
+        "title",
+        "price",
+        "category",
+        "thumbnail",
+        "description",
+        "specifications",
+      ],
+    },
+    {
+      path: "paymentId",
+      select: ["transactionId", "paymentURL"],
+    },
     { path: "userId", select: ["email", "role", "status"] },
   ]);
 
@@ -179,20 +236,6 @@ const createOrder = async (payload: IOrder, userId: string) => {
         throw new AppError(httpStatus.NOT_FOUND, "Product not found");
       }
 
-      // Check if product already ordered by user and payment status is unpaid
-      const existingOrder = await Order.findOne({
-        productId: payload.productId,
-        userId: userId,
-        paymentStatus: PaymentStatus.UNPAID,
-      }).session(session);
-
-      if (existingOrder) {
-        throw new AppError(
-          httpStatus.BAD_REQUEST,
-          "You have already ordered this product and the payment is still pending. Please complete the payment before placing a new order or cancel the existing order."
-        );
-      }
-
       // Ensure stock availability
       if (payload.quantity > product.stock) {
         throw new AppError(
@@ -212,6 +255,8 @@ const createOrder = async (payload: IOrder, userId: string) => {
 
       // Attach userId & amount to order payload
       payload.userId = new mongoose.Types.ObjectId(userId);
+      payload.customerId = new mongoose.Types.ObjectId(customer._id);
+      payload.vendorId = new mongoose.Types.ObjectId(product.vendorId);
       payload.amount = amount;
       payload.shippingFee = shippingFee;
 
@@ -279,12 +324,15 @@ const createOrder = async (payload: IOrder, userId: string) => {
           quantity: payload.quantity.toString(),
           shippingFee: shippingFee.toString(),
         },
-        success_url: `${envVars.STRIPE.SUCCESS_FRONTEND_URL}?session_id={CHECKOUT_SESSION_ID}`,
+        success_url: `${
+          envVars.STRIPE.SUCCESS_FRONTEND_URL
+        }?order_id=${order._id.toString()}`,
         cancel_url: envVars.STRIPE.CANCELED_FRONTEND_URL,
       });
 
       // Persist Stripe session details on payment
       payment.transactionId = checkoutSession.id;
+      payment.paymentURL = checkoutSession.url;
       payment.paymentGateway = checkoutSession;
       await payment.save({ session });
 
@@ -349,7 +397,7 @@ const cancelOrder = async (orderId: string, userId: string) => {
       if (order.paymentId) {
         await Payment.findByIdAndUpdate(
           order.paymentId,
-          { paymentStatus: PaymentStatus.FAILED },
+          { paymentStatus: PaymentStatus.FAILED, paymentURL: null },
           { session }
         );
       }
