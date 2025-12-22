@@ -31,6 +31,14 @@ router.patch(
   validateSchema(updateProfileInfoZodSchema),
   UserController.updateProfileInfo
 );
+router.patch(
+  "/restoreUser/:id",
+  validateToken(Role.ADMIN),
+  UserController.restoreUser
+);
+
+// Delete routes
+router.delete("/:id", validateToken(Role.ADMIN), UserController.deleteUser);
 
 // Export user routes
 const UserRoutes = router;

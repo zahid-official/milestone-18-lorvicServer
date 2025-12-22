@@ -6,15 +6,72 @@ import Customer from "../customer/customer.model";
 import Vendor from "../vendor/vendor.model";
 import { IUser, Role } from "./user.interface";
 import User from "./user.model";
+import { deleteUserById, restoreUserById } from "./user.utils";
+
+const buildUserSearchFilter = async (
+  searchTerm?: string,
+  includeDeletedProfiles = false
+) => {
+  if (!searchTerm || !searchTerm.trim()) {
+    return {};
+  }
+
+  const regex = new RegExp(searchTerm, "i");
+  const profileMatch = {
+    isDeleted: includeDeletedProfiles ? true : { $ne: true },
+    $or: [
+      { name: regex },
+      { email: regex },
+      { phone: regex },
+      { address: regex },
+    ],
+  };
+
+  const [admins, vendors, customers] = await Promise.all([
+    Admin.find(profileMatch).select("userId"),
+    Vendor.find(profileMatch).select("userId"),
+    Customer.find(profileMatch).select("userId"),
+  ]);
+
+  const userIds = new Set<string>();
+  admins.forEach((admin) => userIds.add(admin.userId.toString()));
+  vendors.forEach((vendor) => userIds.add(vendor.userId.toString()));
+  customers.forEach((customer) => userIds.add(customer.userId.toString()));
+
+  const orConditions: Record<string, unknown>[] = [
+    { email: { $regex: regex } },
+  ];
+
+  if (userIds.size > 0) {
+    orConditions.push({ _id: { $in: Array.from(userIds) } });
+  }
+
+  return { $or: orConditions };
+};
 
 // Get all users
 const getAllUsers = async (query: Record<string, string>) => {
-  // Define searchable fields
-  const searchFields = ["role", "email"];
+  const searchFilter = await buildUserSearchFilter(query?.searchTerm);
 
   // Build the query using QueryBuilder class and fetch users
   const queryBuilder = new QueryBuilder<IUser>(
-    User.find({ isDeleted: { $ne: true } }),
+    User.find({ isDeleted: { $ne: true }, ...searchFilter }).populate([
+      {
+        path: "admin",
+        match: { isDeleted: { $ne: true } },
+        select: ["name", "email", "phone", "address", "profilePhoto"],
+      },
+      {
+        path: "vendor",
+        match: { isDeleted: { $ne: true } },
+        select: ["name", "email", "phone", "address", "profilePhoto"],
+      },
+      {
+        path: "customer",
+        match: { isDeleted: { $ne: true } },
+        select: ["name", "email", "phone", "address", "profilePhoto"],
+      },
+    ]),
     query
   );
   const users = await queryBuilder
@@ -22,7 +79,6 @@ const getAllUsers = async (query: Record<string, string>) => {
     .filter()
     .paginate()
     .fieldSelect()
-    .search(searchFields)
     .build()
     .select("-password");
 
@@ -37,10 +93,26 @@ const getAllUsers = async (query: Record<string, string>) => {
 
 // Get all deleted users
 const getAllDeletedUsers = async (query: Record<string, string>) => {
-  const searchFields = ["role", "email"];
+  const searchFilter = await buildUserSearchFilter(query?.searchTerm, true);
 
   const queryBuilder = new QueryBuilder<IUser>(
-    User.find({ isDeleted: true }),
+    User.find({ isDeleted: true, ...searchFilter }).populate([
+      {
+        path: "admin",
+        match: { isDeleted: true },
+        select: ["name", "email", "phone", "address", "profilePhoto"],
+      },
+      {
+        path: "vendor",
+        match: { isDeleted: true },
+        select: ["name", "email", "phone", "address", "profilePhoto"],
+      },
+      {
+        path: "customer",
+        match: { isDeleted: true },
+        select: ["name", "email", "phone", "address", "profilePhoto"],
+      },
+    ]),
     query
   );
   const users = await queryBuilder
@@ -48,7 +120,6 @@ const getAllDeletedUsers = async (query: Record<string, string>) => {
     .filter()
     .paginate()
     .fieldSelect()
-    .search(searchFields)
     .build()
     .select("-password");
 
@@ -142,6 +213,16 @@ const updateProfileInfo = async (
   }
 };
 
+// Delete user by userId
+const deleteUser = async (userId: string, requestingUserId?: string) => {
+  return await deleteUserById(userId, { requestingUserId });
+};
+
+// Restore deleted user by userId
+const restoreUser = async (userId: string) => {
+  return await restoreUserById(userId);
+};
+
 // User service object
 const UserService = {
   getAllUsers,
@@ -149,6 +230,8 @@ const UserService = {
   getSingleUser,
   getProfileInfo,
   updateProfileInfo,
+  deleteUser,
+  restoreUser,
 };
 
 export default UserService;

@@ -34,6 +34,7 @@ const stripeWebhook = async (event: Stripe.Event) => {
             {
               transactionId: paymentIntentId ?? session.id,
               paymentGateway: session,
+              paymentURL: null,
               paymentStatus,
             },
             { session: mongoSession }
@@ -100,7 +101,7 @@ const stripeWebhook = async (event: Stripe.Event) => {
         if (paymentId) {
           await Payment.findByIdAndUpdate(
             paymentId,
-            { paymentStatus: PaymentStatus.FAILED },
+            { paymentStatus: PaymentStatus.FAILED, paymentURL: null },
             { session: mongoSession }
           );
         }

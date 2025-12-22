@@ -5,6 +5,7 @@ import { bcryptjs, httpStatus } from "../../import";
 import QueryBuilder from "../../utils/queryBuilder";
 import { Role } from "../user/user.interface";
 import User from "../user/user.model";
+import { deleteUserById } from "../user/user.utils";
 import { IVendor } from "./vendor.interface";
 import Vendor from "./vendor.model";
 
@@ -93,48 +94,12 @@ const createVendor = async (payload: IVendor, password: string) => {
 
 // Delete vendor
 const deleteVendor = async (id: string) => {
-  const session = await mongoose.startSession();
-
-  try {
-    return await session.withTransaction(async () => {
-      // Check if vendor exist
-      const vendor = await Vendor.findById(id).session(session);
-      if (!vendor) {
-        throw new AppError(httpStatus.NOT_FOUND, "Vendor not found");
-      }
-
-      // Stop if this vendor is already soft-deleted
-      if (vendor.isDeleted) {
-        throw new AppError(httpStatus.BAD_REQUEST, "Vendor already deleted");
-      }
-
-      // Soft delete vendor
-      const updatedVendor = await Vendor.findByIdAndUpdate(
-        vendor._id,
-        { isDeleted: true },
-        { new: true, session }
-      );
-
-      // Soft delete linked user
-      const updatedUser = await User.findByIdAndUpdate(
-        vendor.userId,
-        { isDeleted: true },
-        { new: true, session }
-      );
-      if (!updatedUser) {
-        throw new AppError(httpStatus.NOT_FOUND, "Linked user not found");
-      }
-
-      return updatedVendor;
-    });
-  } catch (error: any) {
-    throw new AppError(
-      error.statusCode || httpStatus.INTERNAL_SERVER_ERROR,
-      error.message || "Failed to delete vendor"
-    );
-  } finally {
-    await session.endSession();
+  const vendor = await Vendor.findById(id);
+  if (!vendor) {
+    throw new AppError(httpStatus.NOT_FOUND, "Vendor not found");
   }
+
+  return await deleteUserById(vendor.userId.toString());
 };
 
 // Vendor service object

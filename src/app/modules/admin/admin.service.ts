@@ -5,6 +5,7 @@ import { bcryptjs, httpStatus } from "../../import";
 import QueryBuilder from "../../utils/queryBuilder";
 import { Role } from "../user/user.interface";
 import User from "../user/user.model";
+import { deleteUserById } from "../user/user.utils";
 import { IAdmin } from "./admin.interface";
 import Admin from "./admin.model";
 
@@ -89,56 +90,14 @@ const createAdmin = async (payload: IAdmin, password: string) => {
 
 // Delete admin
 const deleteAdmin = async (id: string, userId: string) => {
-  const session = await mongoose.startSession();
-
-  try {
-    return await session.withTransaction(async () => {
-      // Check if admin exist
-      const admin = await Admin.findById(id).session(session);
-      if (!admin) {
-        throw new AppError(httpStatus.NOT_FOUND, "Admin not found");
-      }
-
-      // Stop if this admin is already soft-deleted
-      if (admin.isDeleted) {
-        throw new AppError(httpStatus.BAD_REQUEST, "Admin already deleted");
-      }
-
-      // Prevent an admin from deleting their own account
-      if (userId === admin.userId.toString()) {
-        throw new AppError(
-          httpStatus.FORBIDDEN,
-          "You cannot delete your own admin account"
-        );
-      }
-
-      // Soft delete admin
-      const updatedAdmin = await Admin.findByIdAndUpdate(
-        admin._id,
-        { isDeleted: true },
-        { new: true, session }
-      );
-
-      // Soft delete linked user
-      const updatedUser = await User.findByIdAndUpdate(
-        admin.userId,
-        { isDeleted: true },
-        { new: true, session }
-      );
-      if (!updatedUser) {
-        throw new AppError(httpStatus.NOT_FOUND, "Linked user not found");
-      }
-
-      return updatedAdmin;
-    });
-  } catch (error: any) {
-    throw new AppError(
-      error.statusCode || httpStatus.INTERNAL_SERVER_ERROR,
-      error.message || "Failed to delete admin"
-    );
-  } finally {
-    await session.endSession();
+  const admin = await Admin.findById(id);
+  if (!admin) {
+    throw new AppError(httpStatus.NOT_FOUND, "Admin not found");
   }
+
+  return await deleteUserById(admin.userId.toString(), {
+    requestingUserId: userId,
+  });
 };
 
 // Admin service object

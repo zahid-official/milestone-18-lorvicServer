@@ -13,6 +13,8 @@ export enum OrderStatus {
 // Order interface definition
 export interface IOrder {
   userId: Types.ObjectId;
+  customerId: Types.ObjectId;
+  vendorId: Types.ObjectId;
   productId: Types.ObjectId;
   paymentId?: Types.ObjectId;
   quantity: number;
