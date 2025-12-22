@@ -84,6 +84,21 @@ const updateProfileInfo = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// Delete user by userId
+const deleteUser = catchAsync(async (req: Request, res: Response) => {
+  const userId = req?.params?.id;
+  const requestingUserId = req?.decodedToken?.userId;
+  const result = await UserService.deleteUser(userId, requestingUserId);
+
+  // Send response
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "User deleted successfully",
+    data: result,
+  });
+});
+
 // User controller object
 const UserController = {
   getAllUsers,
@@ -91,6 +106,7 @@ const UserController = {
   getSingleUser,
   getProfileInfo,
   updateProfileInfo,
+  deleteUser,
 };
 
 export default UserController;

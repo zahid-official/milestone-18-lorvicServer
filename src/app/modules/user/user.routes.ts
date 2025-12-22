@@ -32,6 +32,9 @@ router.patch(
   UserController.updateProfileInfo
 );
 
+// Delete routes
+router.delete("/:id", validateToken(Role.ADMIN), UserController.deleteUser);
+
 // Export user routes
 const UserRoutes = router;
 export default UserRoutes;
