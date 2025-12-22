@@ -4,7 +4,7 @@ import { httpStatus } from "../../import";
 import Admin from "../admin/admin.model";
 import Customer from "../customer/customer.model";
 import Vendor from "../vendor/vendor.model";
-import { Role } from "./user.interface";
+import { AccountStatus, Role } from "./user.interface";
 import User from "./user.model";
 
 interface DeleteUserOptions {
@@ -34,7 +34,7 @@ const softDeleteProfileAndUser = async (
 
   const updatedUser = await User.findByIdAndUpdate(
     userId,
-    { isDeleted: true },
+    { isDeleted: true, status: AccountStatus.BLOCKED },
     { new: true, session }
   );
   if (!updatedUser) {
