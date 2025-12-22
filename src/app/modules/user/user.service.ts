@@ -7,14 +7,51 @@ import Vendor from "../vendor/vendor.model";
 import { IUser, Role } from "./user.interface";
 import User from "./user.model";
 
+const buildUserSearchFilter = async (searchTerm?: string) => {
+  if (!searchTerm || !searchTerm.trim()) {
+    return {};
+  }
+
+  const regex = new RegExp(searchTerm, "i");
+  const profileMatch = {
+    isDeleted: { $ne: true },
+    $or: [
+      { name: regex },
+      { email: regex },
+      { phone: regex },
+      { address: regex },
+    ],
+  };
+
+  const [admins, vendors, customers] = await Promise.all([
+    Admin.find(profileMatch).select("userId"),
+    Vendor.find(profileMatch).select("userId"),
+    Customer.find(profileMatch).select("userId"),
+  ]);
+
+  const userIds = new Set<string>();
+  admins.forEach((admin) => userIds.add(admin.userId.toString()));
+  vendors.forEach((vendor) => userIds.add(vendor.userId.toString()));
+  customers.forEach((customer) => userIds.add(customer.userId.toString()));
+
+  const orConditions: Record<string, unknown>[] = [
+    { email: { $regex: regex } },
+  ];
+
+  if (userIds.size > 0) {
+    orConditions.push({ _id: { $in: Array.from(userIds) } });
+  }
+
+  return { $or: orConditions };
+};
+
 // Get all users
 const getAllUsers = async (query: Record<string, string>) => {
-  // Define searchable fields
-  const searchFields = ["role", "email"];
+  const searchFilter = await buildUserSearchFilter(query?.searchTerm);
 
   // Build the query using QueryBuilder class and fetch users
   const queryBuilder = new QueryBuilder<IUser>(
-    User.find({ isDeleted: { $ne: true } }).populate([
+    User.find({ isDeleted: { $ne: true }, ...searchFilter }).populate([
       {
         path: "admin",
         match: { isDeleted: { $ne: true } },
@@ -38,7 +75,6 @@ const getAllUsers = async (query: Record<string, string>) => {
     .filter()
     .paginate()
     .fieldSelect()
-    .search(searchFields)
     .build()
     .select("-password");
 
@@ -53,10 +89,10 @@ const getAllUsers = async (query: Record<string, string>) => {
 
 // Get all deleted users
 const getAllDeletedUsers = async (query: Record<string, string>) => {
-  const searchFields = ["role", "email"];
+  const searchFilter = await buildUserSearchFilter(query?.searchTerm);
 
   const queryBuilder = new QueryBuilder<IUser>(
-    User.find({ isDeleted: true }).populate([
+    User.find({ isDeleted: true, ...searchFilter }).populate([
       {
         path: "admin",
         match: { isDeleted: { $ne: true } },
@@ -80,7 +116,6 @@ const getAllDeletedUsers = async (query: Record<string, string>) => {
     .filter()
     .paginate()
     .fieldSelect()
-    .search(searchFields)
     .build()
     .select("-password");
 
