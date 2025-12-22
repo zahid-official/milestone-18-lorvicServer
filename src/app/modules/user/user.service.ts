@@ -6,7 +6,7 @@ import Customer from "../customer/customer.model";
 import Vendor from "../vendor/vendor.model";
 import { IUser, Role } from "./user.interface";
 import User from "./user.model";
-import { deleteUserById } from "./user.utils";
+import { deleteUserById, restoreUserById } from "./user.utils";
 
 const buildUserSearchFilter = async (
   searchTerm?: string,
@@ -218,6 +218,11 @@ const deleteUser = async (userId: string, requestingUserId?: string) => {
   return await deleteUserById(userId, { requestingUserId });
 };
 
+// Restore deleted user by userId
+const restoreUser = async (userId: string) => {
+  return await restoreUserById(userId);
+};
+
 // User service object
 const UserService = {
   getAllUsers,
@@ -226,6 +231,7 @@ const UserService = {
   getProfileInfo,
   updateProfileInfo,
   deleteUser,
+  restoreUser,
 };
 
 export default UserService;

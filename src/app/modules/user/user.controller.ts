@@ -99,6 +99,20 @@ const deleteUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// Restore deleted user by userId
+const restoreUser = catchAsync(async (req: Request, res: Response) => {
+  const userId = req?.params?.id;
+  const result = await UserService.restoreUser(userId);
+
+  // Send response
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "User restored successfully",
+    data: result,
+  });
+});
+
 // User controller object
 const UserController = {
   getAllUsers,
@@ -107,6 +121,7 @@ const UserController = {
   getProfileInfo,
   updateProfileInfo,
   deleteUser,
+  restoreUser,
 };
 
 export default UserController;
