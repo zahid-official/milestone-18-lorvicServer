@@ -15,8 +15,34 @@ const userSchema = new Schema<IUser>(
     isDeleted: { type: Boolean, default: false },
     needChangePassword: { type: Boolean, default: true },
   },
-  { versionKey: false, timestamps: true }
+  {
+    versionKey: false,
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
+
+userSchema.virtual("admin", {
+  ref: "Admin",
+  localField: "_id",
+  foreignField: "userId",
+  justOne: true,
+});
+
+userSchema.virtual("vendor", {
+  ref: "Vendor",
+  localField: "_id",
+  foreignField: "userId",
+  justOne: true,
+});
+
+userSchema.virtual("customer", {
+  ref: "Customer",
+  localField: "_id",
+  foreignField: "userId",
+  justOne: true,
+});
 
 // Create mongoose model from user schema
 const User = model<IUser>("User", userSchema);

@@ -14,7 +14,23 @@ const getAllUsers = async (query: Record<string, string>) => {
 
   // Build the query using QueryBuilder class and fetch users
   const queryBuilder = new QueryBuilder<IUser>(
-    User.find({ isDeleted: { $ne: true } }),
+    User.find({ isDeleted: { $ne: true } }).populate([
+      {
+        path: "admin",
+        match: { isDeleted: { $ne: true } },
+        select: ["name", "email", "phone", "address", "profilePhoto"],
+      },
+      {
+        path: "vendor",
+        match: { isDeleted: { $ne: true } },
+        select: ["name", "email", "phone", "address", "profilePhoto"],
+      },
+      {
+        path: "customer",
+        match: { isDeleted: { $ne: true } },
+        select: ["name", "email", "phone", "address", "profilePhoto"],
+      },
+    ]),
     query
   );
   const users = await queryBuilder
@@ -40,7 +56,23 @@ const getAllDeletedUsers = async (query: Record<string, string>) => {
   const searchFields = ["role", "email"];
 
   const queryBuilder = new QueryBuilder<IUser>(
-    User.find({ isDeleted: true }),
+    User.find({ isDeleted: true }).populate([
+      {
+        path: "admin",
+        match: { isDeleted: { $ne: true } },
+        select: ["name", "email", "phone", "address", "profilePhoto"],
+      },
+      {
+        path: "vendor",
+        match: { isDeleted: { $ne: true } },
+        select: ["name", "email", "phone", "address", "profilePhoto"],
+      },
+      {
+        path: "customer",
+        match: { isDeleted: { $ne: true } },
+        select: ["name", "email", "phone", "address", "profilePhoto"],
+      },
+    ]),
     query
   );
   const users = await queryBuilder
