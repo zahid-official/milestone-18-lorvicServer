@@ -8,14 +8,17 @@ import { IUser, Role } from "./user.interface";
 import User from "./user.model";
 import { deleteUserById } from "./user.utils";
 
-const buildUserSearchFilter = async (searchTerm?: string) => {
+const buildUserSearchFilter = async (
+  searchTerm?: string,
+  includeDeletedProfiles = false
+) => {
   if (!searchTerm || !searchTerm.trim()) {
     return {};
   }
 
   const regex = new RegExp(searchTerm, "i");
   const profileMatch = {
-    isDeleted: { $ne: true },
+    isDeleted: includeDeletedProfiles ? true : { $ne: true },
     $or: [
       { name: regex },
       { email: regex },
@@ -90,23 +93,23 @@ const getAllUsers = async (query: Record<string, string>) => {
 
 // Get all deleted users
 const getAllDeletedUsers = async (query: Record<string, string>) => {
-  const searchFilter = await buildUserSearchFilter(query?.searchTerm);
+  const searchFilter = await buildUserSearchFilter(query?.searchTerm, true);
 
   const queryBuilder = new QueryBuilder<IUser>(
     User.find({ isDeleted: true, ...searchFilter }).populate([
       {
         path: "admin",
-        match: { isDeleted: { $ne: true } },
+        match: { isDeleted: true },
         select: ["name", "email", "phone", "address", "profilePhoto"],
       },
       {
         path: "vendor",
-        match: { isDeleted: { $ne: true } },
+        match: { isDeleted: true },
         select: ["name", "email", "phone", "address", "profilePhoto"],
       },
       {
         path: "customer",
-        match: { isDeleted: { $ne: true } },
+        match: { isDeleted: true },
         select: ["name", "email", "phone", "address", "profilePhoto"],
       },
     ]),
