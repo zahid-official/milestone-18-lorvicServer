@@ -12,7 +12,7 @@
       width="28px"
       alt="Fast"
     />
-    Enterprise-Grade Multi-Vendor E-Commerce Backend
+    Enterprise Grade Multi Vendor E-Commerce Backend
   </h2>
   <p><strong>Built with precision, designed for growth</strong></p>
   <p><strong>Lorvic</strong> is a production-ready, scalable backend API for modern multi-vendor e-commerce platforms. Built with cutting-edge technologies and industry best practices, it provides a robust foundation for marketplace applications with secure payment processing, role-based access control, and comprehensive vendor management.</p>

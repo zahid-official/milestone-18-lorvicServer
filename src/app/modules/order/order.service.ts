@@ -1,70 +1,82 @@
 import mongoose from "mongoose";
+import type Stripe from "stripe";
 import envVars from "../../config/env";
 import stripe from "../../config/stripe";
 import AppError from "../../errors/AppError";
 import { httpStatus } from "../../import";
 import QueryBuilder from "../../utils/queryBuilder";
 import Customer from "../customer/customer.model";
+import { CouponDiscountType, CouponScope } from "../coupon/coupon.interface";
+import Coupon from "../coupon/coupon.model";
 import { PaymentStatus } from "../payment/payment.interface";
 import Payment from "../payment/payment.model";
 import Product from "../product/product.model";
+import { Role } from "../user/user.interface";
 import Vendor from "../vendor/vendor.model";
 import { IOrder, OrderStatus } from "./order.interface";
 import Order from "./order.model";
 
 // Get all orders
 const getAllOrders = async (
-  vendorUserId: string,
+  userId: string,
+  userRole: Role,
   query: Record<string, string>
 ) => {
   const searchFields = ["orderStatus", "paymentStatus"];
 
-  // Find vendor by the authenticated user's id
-  const vendor = await Vendor.findOne({ userId: vendorUserId });
-  if (!vendor) {
-    throw new AppError(
-      httpStatus.FORBIDDEN,
-      "Vendor not found or unauthorized"
+  const populateFields = [
+    {
+      path: "userId",
+      select: ["email", "role", "status"],
+    },
+    {
+      path: "customerId",
+      select: ["name", "email", "phone", "address"],
+    },
+    {
+      path: "vendorId",
+      select: ["name", "email"],
+    },
+    {
+      path: "productId",
+      select: [
+        "title",
+        "price",
+        "category",
+        "thumbnail",
+        "description",
+        "specifications",
+      ],
+    },
+    {
+      path: "paymentId",
+      select: ["transactionId", "paymentURL"],
+    },
+  ];
+
+  let baseQuery = Order.find().populate(populateFields);
+
+  if (userRole !== Role.ADMIN) {
+    // Find vendor by the authenticated user's id
+    const vendor = await Vendor.findOne({ userId });
+    if (!vendor) {
+      throw new AppError(
+        httpStatus.FORBIDDEN,
+        "Vendor not found or unauthorized"
+      );
+    }
+
+    // Collect product ids that belong to this vendor
+    const vendorProductIds = await Product.find({
+      vendorId: vendor._id,
+    }).distinct("_id");
+
+    baseQuery = Order.find({ productId: { $in: vendorProductIds } }).populate(
+      populateFields
     );
   }
 
-  // Collect product ids that belong to this vendor
-  const vendorProductIds = await Product.find({
-    vendorId: vendor._id,
-  }).distinct("_id");
-
-  const queryBuilder = new QueryBuilder<IOrder>(
-    Order.find({ productId: { $in: vendorProductIds } }).populate([
-      {
-        path: "userId",
-        select: ["email", "role", "status"],
-      },
-      {
-        path: "customerId",
-        select: ["name", "email", "phone", "address"],
-      },
-      {
-        path: "vendorId",
-        select: ["name", "email"],
-      },
-      {
-        path: "productId",
-        select: [
-          "title",
-          "price",
-          "category",
-          "thumbnail",
-          "description",
-          "specifications",
-        ],
-      },
-      {
-        path: "paymentId",
-        select: ["transactionId", "paymentURL"],
-      },
-    ]),
-    query
-  );
+  const queryBuilder = new QueryBuilder<IOrder>(baseQuery, query);
 
   const orders = await queryBuilder
     .sort()
@@ -130,13 +142,21 @@ const getAllOrdersByUser = async (
 };
 
 // Get single order
-const getSingleOrder = async (orderId: string, vendorUserId: string) => {
-  const vendor = await Vendor.findOne({ userId: vendorUserId });
-  if (!vendor) {
-    throw new AppError(
-      httpStatus.FORBIDDEN,
-      "Vendor not found or unauthorized"
-    );
+const getSingleOrder = async (
+  orderId: string,
+  userId: string,
+  userRole: Role
+) => {
+  let vendorId: string | null = null;
+  if (userRole !== Role.ADMIN) {
+    const vendor = await Vendor.findOne({ userId });
+    if (!vendor) {
+      throw new AppError(
+        httpStatus.FORBIDDEN,
+        "Vendor not found or unauthorized"
+      );
+    }
+    vendorId = vendor._id.toString();
   }
 
   const order = await Order.findById(orderId).populate([
@@ -174,8 +194,12 @@ const getSingleOrder = async (orderId: string, vendorUserId: string) => {
     throw new AppError(httpStatus.NOT_FOUND, "Order not found");
   }
 
+  if (userRole === Role.ADMIN) {
+    return order;
+  }
+
   const product: any = order.productId;
-  if (!product || product.vendorId?.toString() !== vendor._id.toString()) {
+  if (!product || product.vendorId?.toString() !== vendorId) {
     throw new AppError(
       httpStatus.FORBIDDEN,
       "You are not authorized to view this order"
@@ -248,10 +272,115 @@ const createOrder = async (payload: IOrder, userId: string) => {
       product.stock -= payload.quantity;
       await product.save({ session });
       const shippingFee = Number(payload.shippingFee ?? 0);
-      const productTotal = Number(
-        (product?.price * payload.quantity).toFixed(2)
+      const shippingFeeCents = Math.round(shippingFee * 100);
+      const priceCents = Math.round(product.price * 100);
+      const productTotalCents = priceCents * payload.quantity;
+
+      let discountCents = 0;
+      const couponCode = payload.couponCode?.trim();
+
+      if (couponCode) {
+        const normalizedCode = couponCode.toUpperCase();
+        const coupon = await Coupon.findOne({
+          code: normalizedCode,
+          isDeleted: { $ne: true },
+        }).session(session);
+
+        if (!coupon || !coupon.isActive) {
+          throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "Invalid or inactive coupon"
+          );
+        }
+
+        const now = new Date();
+        if (now < coupon.startDate) {
+          throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "Coupon is not active yet"
+          );
+        }
+        if (now > coupon.endDate) {
+          throw new AppError(httpStatus.BAD_REQUEST, "Coupon has expired");
+        }
+
+        if (
+          coupon.scope === CouponScope.VENDOR &&
+          (!coupon.vendorId ||
+            coupon.vendorId.toString() !== product.vendorId.toString())
+        ) {
+          throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "Coupon is not valid for this product"
+          );
+        }
+
+        if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+          throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "Coupon usage limit reached"
+          );
+        }
+
+        if (
+          coupon.minOrderAmount &&
+          productTotalCents < Math.round(coupon.minOrderAmount * 100)
+        ) {
+          throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "Order amount does not meet coupon requirements"
+          );
+        }
+
+        if (coupon.minQuantity && payload.quantity < coupon.minQuantity) {
+          throw new AppError(
+            httpStatus.BAD_REQUEST,
+            "Order quantity does not meet coupon requirements"
+          );
+        }
+
+        // Use cents to avoid floating point drift in discount math
+        if (coupon.discountType === CouponDiscountType.PERCENTAGE) {
+          if (coupon.discountValue <= 0 || coupon.discountValue > 100) {
+            throw new AppError(
+              httpStatus.BAD_REQUEST,
+              "Invalid coupon discount percentage"
+            );
+          }
+          discountCents = Math.round(
+            (productTotalCents * coupon.discountValue) / 100
+          );
+        } else {
+          if (coupon.discountValue <= 0) {
+            throw new AppError(
+              httpStatus.BAD_REQUEST,
+              "Invalid coupon discount value"
+            );
+          }
+          discountCents = Math.round(coupon.discountValue * 100);
+        }
+
+        if (coupon.maxDiscount) {
+          discountCents = Math.min(
+            discountCents,
+            Math.round(coupon.maxDiscount * 100)
+          );
+        }
+
+        discountCents = Math.min(discountCents, productTotalCents);
+        payload.couponId = coupon._id;
+        payload.couponCode = normalizedCode;
+      } else {
+        payload.couponCode = undefined;
+      }
+
+      payload.discountAmount = Number((discountCents / 100).toFixed(2));
+      const discountedProductCents = Math.max(
+        productTotalCents - discountCents,
+        0
       );
-      const amount = Number((productTotal + shippingFee).toFixed(2));
+      const amountCents = discountedProductCents + shippingFeeCents;
+      const amount = Number((amountCents / 100).toFixed(2));
 
       // Attach userId & amount to order payload
       payload.userId = new mongoose.Types.ObjectId(userId);
@@ -282,21 +411,25 @@ const createOrder = async (payload: IOrder, userId: string) => {
       await order.save({ session });
 
       // Create Stripe Checkout session
-      const lineItems = [
-        {
+      const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+      if (discountedProductCents > 0) {
+        lineItems.push({
           price_data: {
             currency: "usd",
             product_data: {
-              name: product.title,
+              name:
+                payload.quantity > 1
+                  ? `${product.title} x${payload.quantity}`
+                  : product.title,
               description: product.description ?? "Order payment",
             },
-            unit_amount: Math.round(product.price * 100), // in cents
+            unit_amount: discountedProductCents, // in cents
           },
-          quantity: payload.quantity,
-        },
-      ];
+          quantity: 1,
+        });
+      }
 
-      if (shippingFee > 0) {
+      if (shippingFeeCents > 0) {
         lineItems.push({
           price_data: {
             currency: "usd",
@@ -304,10 +437,18 @@ const createOrder = async (payload: IOrder, userId: string) => {
               name: "Shipping Fee",
               description: "Shipping charge",
             },
-            unit_amount: Math.round(shippingFee * 100),
+            unit_amount: shippingFeeCents,
           },
           quantity: 1,
         });
+      }
+
+      // Stripe requires at least one positive line item
+      if (lineItems.length === 0) {
+        throw new AppError(
+          httpStatus.BAD_REQUEST,
+          "Order total must be greater than zero"
+        );
       }
 
       const checkoutSession = await stripe.checkout.sessions.create({
@@ -323,6 +464,8 @@ const createOrder = async (payload: IOrder, userId: string) => {
           userId: userId.toString(),
           quantity: payload.quantity.toString(),
           shippingFee: shippingFee.toString(),
+          couponCode: payload.couponCode ?? "",
+          discountAmount: payload.discountAmount?.toString() ?? "0",
         },
         success_url: `${
           envVars.STRIPE.SUCCESS_FRONTEND_URL

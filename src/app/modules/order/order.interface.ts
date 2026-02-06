@@ -16,6 +16,9 @@ export interface IOrder {
   customerId: Types.ObjectId;
   vendorId: Types.ObjectId;
   productId: Types.ObjectId;
+  couponId?: Types.ObjectId;
+  couponCode?: string;
+  discountAmount?: number;
   paymentId?: Types.ObjectId;
   quantity: number;
   amount: number;

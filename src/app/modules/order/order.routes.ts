@@ -9,7 +9,11 @@ import createOrderSchema from "./order.validation";
 const router = Router();
 
 // Get routes
-router.get("/", validateToken(Role.VENDOR), OrderController.getAllOrders);
+router.get(
+  "/",
+  validateToken(Role.ADMIN, Role.VENDOR),
+  OrderController.getAllOrders
+);
 router.get(
   "/userOrders",
   validateToken(Role.CUSTOMER),
@@ -17,7 +21,7 @@ router.get(
 );
 router.get(
   "/singleOrder/:id",
-  validateToken(Role.VENDOR),
+  validateToken(Role.ADMIN, Role.VENDOR),
   OrderController.getSingleOrder
 );
 router.get(

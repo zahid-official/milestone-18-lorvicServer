@@ -32,6 +32,12 @@ const createOrderSchema = z.object({
           : "Shipping Fee must be a number",
     })
     .nonnegative({ error: "Shipping Fee cannot be negative" }),
+
+  // Coupon Code
+  couponCode: z
+    .string({ error: "Coupon code must be a string" })
+    .trim()
+    .optional(),
 });
 
 export default createOrderSchema;

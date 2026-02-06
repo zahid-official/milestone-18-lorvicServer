@@ -2,14 +2,17 @@ import { Request, Response } from "express";
 import { httpStatus } from "../../import";
 import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
+import { Role } from "../user/user.interface";
 import OrderService from "./order.service";
 
 // Get all orders
 const getAllOrders = catchAsync(async (req: Request, res: Response) => {
   const query = req?.query;
-  const vendorUserId = req?.decodedToken?.userId;
+  const userId = req?.decodedToken?.userId;
+  const userRole = req?.decodedToken?.role as Role;
   const result = await OrderService.getAllOrders(
-    vendorUserId,
+    userId,
+    userRole,
     query as Record<string, string>
   );
 
@@ -43,8 +46,13 @@ const getAllOrdersByUser = catchAsync(async (req: Request, res: Response) => {
 // Get single order
 const getSingleOrder = catchAsync(async (req: Request, res: Response) => {
   const orderId = req?.params?.id;
-  const vendorUserId = req?.decodedToken?.userId;
-  const result = await OrderService.getSingleOrder(orderId, vendorUserId);
+  const userId = req?.decodedToken?.userId;
+  const userRole = req?.decodedToken?.role as Role;
+  const result = await OrderService.getSingleOrder(
+    orderId,
+    userId,
+    userRole
+  );
 
   sendResponse(res, {
     success: true,

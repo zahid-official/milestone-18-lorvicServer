@@ -4,6 +4,7 @@ import AuthRoutes from "../modules/auth/auth.routes";
 import CustomerRoutes from "../modules/customer/customer.routes";
 import OrderRoutes from "../modules/order/order.routes";
 import ProductRoutes from "../modules/product/product.routes";
+import CouponRoutes from "../modules/coupon/coupon.routes";
 import UserRoutes from "../modules/user/user.routes";
 import VendorRoutes from "../modules/vendor/vendor.routes";
 
@@ -35,6 +36,10 @@ const moduleRoutes = [
   {
     path: "/product",
     route: ProductRoutes,
+  },
+  {
+    path: "/coupon",
+    route: CouponRoutes,
   },
   {
     path: "/order",

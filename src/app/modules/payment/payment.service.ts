@@ -5,6 +5,7 @@ import Order from "../order/order.model";
 import { OrderStatus } from "../order/order.interface";
 import Product from "../product/product.model";
 import mongoose from "mongoose";
+import Coupon from "../coupon/coupon.model";
 
 // Create payment
 const stripeWebhook = async (event: Stripe.Event) => {
@@ -41,19 +42,29 @@ const stripeWebhook = async (event: Stripe.Event) => {
           );
         }
 
-        if (orderId) {
-          await Order.findByIdAndUpdate(
-            orderId,
-            {
-              paymentId,
-              paymentStatus,
-              orderStatus:
-                paymentStatus === PaymentStatus.PAID
-                  ? OrderStatus.CONFIRMED
-                  : OrderStatus.PENDING,
-            },
-            { session: mongoSession }
-          );
+        const order = orderId
+          ? await Order.findById(orderId).session(mongoSession)
+          : null;
+
+        if (order) {
+          const wasPaid = order.paymentStatus === PaymentStatus.PAID;
+          if (paymentId) {
+            order.paymentId = new mongoose.Types.ObjectId(paymentId);
+          }
+          order.paymentStatus = paymentStatus;
+          order.orderStatus =
+            paymentStatus === PaymentStatus.PAID
+              ? OrderStatus.CONFIRMED
+              : OrderStatus.PENDING;
+          await order.save({ session: mongoSession });
+
+          if (!wasPaid && paymentStatus === PaymentStatus.PAID && order.couponId) {
+            await Coupon.findByIdAndUpdate(
+              order.couponId,
+              { $inc: { usedCount: 1 } },
+              { session: mongoSession }
+            );
+          }
         }
       });
       await mongoSession.endSession();
