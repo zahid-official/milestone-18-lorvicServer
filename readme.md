@@ -830,7 +830,7 @@ vercel --prod
 | 🌐 **Live API**    | [lorvic-api.vercel.app](https://lorvic-api.vercel.app/)                  |
 | 💻 **Client App**  | [lorvic-official.vercel.app](https://lorvic-official.vercel.app/)        |
 | 🗄️ **Server Repo** | [GitHub - Server](https://github.com/zahid-official/milestone-18-lorvicServer) |
-| 📱 **Client Repo** | [GitHub - Client](https://github.com/zahid-official/milestone-18-client) |
+| 📱 **Client Repo** | [GitHub - Client](https://github.com/zahid-official/milestone-18-lorvicClient) |
 
 </div>
 
