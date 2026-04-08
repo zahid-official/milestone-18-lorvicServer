@@ -195,13 +195,14 @@ graph TB
 
 ### **Additional Stack**
 
-| Category             | Technologies                 | Purpose                      |
-| :------------------- | :--------------------------- | :--------------------------- |
-| 🔒 **Security**      | `JWT` `Passport.js` `Bcrypt` | Authentication & protection  |
-| ✅ **Validation**    | `Zod` `Mongoose`             | Schema validation & ODM      |
-| 💳 **Payment**       | `Stripe`                     | Payment processing           |
-| ☁️ **Storage**       | `Multer` `Cloudinary`        | File upload & CDN            |
-| 🚀 **Deployment**    | `Vercel`                     | Cloud deployment             |
+| Category          | Technologies                 | Purpose                     |
+| :---------------- | :--------------------------- | :-------------------------- |
+| 🔒 **Security**   | `JWT` `Passport.js` `Bcrypt` | Authentication & protection |
+| ✅ **Validation** | `Zod` `Mongoose`             | Schema validation & ODM     |
+| 💳 **Payment**    | `Stripe`                     | Payment processing          |
+| ☁️ **Storage**    | `Multer` `Cloudinary`        | File upload & CDN           |
+| 🚀 **Deployment** | `Vercel`                     | Cloud deployment            |
+
 </div>
 
 </br>
@@ -236,7 +237,7 @@ For easier setup without local MongoDB installation:
 1. Create free account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
 2. Create a cluster and get connection string
 3. Update `.env` with your connection string:
-   
+
    ```env
    DB_URL=mongodb+srv://<username>:<password>@cluster.mongodb.net/lorvicDB
    ```
@@ -312,7 +313,7 @@ STRIPE_CANCELED_FRONTEND_URL=http://localhost:3000/payment/cancel
 
 ```yaml
 Development: http://localhost:5000/api/v1
-Production:  https://lorvic-api.vercel.app/api/v1
+Production: https://lorvic-api.vercel.app/api/v1
 ```
 
 ### **📋 API Endpoints**
@@ -320,95 +321,95 @@ Production:  https://lorvic-api.vercel.app/api/v1
 <details>
 <summary><b>🔐 Click to view Authentication Routes</b></summary>
 
-| HTTP Method | Endpoint               | Description                      | Authentication Required |
-| ----------- | ---------------------- | -------------------------------- | ----------------------- |
-| `POST`      | `/auth/login`          | User authentication              | No                      |
-| `POST`      | `/auth/logout`         | Clear session and cookies        | Authenticated           |
-| `PATCH`     | `/auth/changePassword` | Update user password             | Authenticated           |
+| HTTP Method | Endpoint               | Description               | Authentication Required |
+| ----------- | ---------------------- | ------------------------- | ----------------------- |
+| `POST`      | `/auth/login`          | User authentication       | No                      |
+| `POST`      | `/auth/logout`         | Clear session and cookies | Authenticated           |
+| `PATCH`     | `/auth/changePassword` | Update user password      | Authenticated           |
 
 </details>
 
 <details>
 <summary><b>👤 Click to view User Management Routes</b></summary>
 
-| HTTP Method | Endpoint                 | Description                      | Authentication Required |
-| ----------- | ------------------------ | -------------------------------- | ----------------------- |
-| `GET`       | `/user`                  | List all active users            | Admin Only              |
-| `GET`       | `/user/deletedUsers`     | List soft-deleted users          | Admin Only              |
-| `GET`       | `/user/singleUser/:id`   | Get user by ID                   | Admin Only              |
-| `GET`       | `/user/profile`          | Get current user profile         | Authenticated           |
-| `PATCH`     | `/user/profile`          | Update profile (supports upload) | Authenticated           |
+| HTTP Method | Endpoint               | Description                      | Authentication Required |
+| ----------- | ---------------------- | -------------------------------- | ----------------------- |
+| `GET`       | `/user`                | List all active users            | Admin Only              |
+| `GET`       | `/user/deletedUsers`   | List soft-deleted users          | Admin Only              |
+| `GET`       | `/user/singleUser/:id` | Get user by ID                   | Admin Only              |
+| `GET`       | `/user/profile`        | Get current user profile         | Authenticated           |
+| `PATCH`     | `/user/profile`        | Update profile (supports upload) | Authenticated           |
 
 </details>
 
 <details>
 <summary><b>👨‍💼 Click to view Admin Management Routes</b></summary>
 
-| HTTP Method | Endpoint          | Description          | Authentication Required |
-| ----------- | ----------------- | -------------------- | ----------------------- |
-| `GET`       | `/admin`          | List all admins      | Admin Only              |
-| `POST`      | `/admin/create`   | Create new admin     | Admin Only              |
-| `DELETE`    | `/admin/:id`      | Soft delete admin    | Admin Only              |
+| HTTP Method | Endpoint        | Description       | Authentication Required |
+| ----------- | --------------- | ----------------- | ----------------------- |
+| `GET`       | `/admin`        | List all admins   | Admin Only              |
+| `POST`      | `/admin/create` | Create new admin  | Admin Only              |
+| `DELETE`    | `/admin/:id`    | Soft delete admin | Admin Only              |
 
 </details>
 
 <details>
 <summary><b>🏪 Click to view Vendor Management Routes</b></summary>
 
-| HTTP Method | Endpoint           | Description           | Authentication Required |
-| ----------- | ------------------ | --------------------- | ----------------------- |
-| `GET`       | `/vendor`          | List all vendors      | Admin Only              |
-| `POST`      | `/vendor/create`   | Create vendor account | Admin Only              |
-| `DELETE`    | `/vendor/:id`      | Soft delete vendor    | Admin Only              |
+| HTTP Method | Endpoint         | Description           | Authentication Required |
+| ----------- | ---------------- | --------------------- | ----------------------- |
+| `GET`       | `/vendor`        | List all vendors      | Admin Only              |
+| `POST`      | `/vendor/create` | Create vendor account | Admin Only              |
+| `DELETE`    | `/vendor/:id`    | Soft delete vendor    | Admin Only              |
 
 </details>
 
 <details>
 <summary><b>👥 Click to view Customer Management Routes</b></summary>
 
-| HTTP Method | Endpoint            | Description            | Authentication Required |
-| ----------- | ------------------- | ---------------------- | ----------------------- |
-| `GET`       | `/customer`         | List all customers     | Admin Only              |
-| `POST`      | `/customer/create`  | Customer registration  | Public                  |
-| `DELETE`    | `/customer/:id`     | Soft delete customer   | Admin Only              |
+| HTTP Method | Endpoint           | Description           | Authentication Required |
+| ----------- | ------------------ | --------------------- | ----------------------- |
+| `GET`       | `/customer`        | List all customers    | Admin Only              |
+| `POST`      | `/customer/create` | Customer registration | Public                  |
+| `DELETE`    | `/customer/:id`    | Soft delete customer  | Admin Only              |
 
 </details>
 
 <details>
 <summary><b>📦 Click to view Product Catalog Routes</b></summary>
 
-| HTTP Method | Endpoint                     | Description                      | Authentication Required |
-| ----------- | ---------------------------- | -------------------------------- | ----------------------- |
-| `GET`       | `/product`                   | List products (with filters)     | Vendor/Admin            |
-| `GET`       | `/product/singleProduct/:id` | Get product details              | Vendor/Admin            |
-| `POST`      | `/product/create`            | Create product (with image)      | Vendor Only             |
-| `PATCH`     | `/product/:id`               | Update product                   | Vendor Only (Owner)     |
-| `DELETE`    | `/product/:id`               | Delete product                   | Vendor Only (Owner)     |
+| HTTP Method | Endpoint                     | Description                  | Authentication Required |
+| ----------- | ---------------------------- | ---------------------------- | ----------------------- |
+| `GET`       | `/product`                   | List products (with filters) | Vendor/Admin            |
+| `GET`       | `/product/singleProduct/:id` | Get product details          | Vendor/Admin            |
+| `POST`      | `/product/create`            | Create product (with image)  | Vendor Only             |
+| `PATCH`     | `/product/:id`               | Update product               | Vendor Only (Owner)     |
+| `DELETE`    | `/product/:id`               | Delete product               | Vendor Only (Owner)     |
 
 </details>
 
 <details>
 <summary><b>🛍️ Click to view Order Management Routes</b></summary>
 
-| HTTP Method | Endpoint                    | Description                   | Authentication Required |
-| ----------- | --------------------------- | ----------------------------- | ----------------------- |
-| `GET`       | `/order`                    | List vendor orders            | Vendor Only             |
-| `GET`       | `/order/userOrders`         | List customer orders          | Customer Only           |
-| `GET`       | `/order/singleOrder/:id`    | Get order details (vendor)    | Vendor Only             |
-| `GET`       | `/order/userOrder/:id`      | Get order details (customer)  | Customer Only           |
-| `POST`      | `/order/create`             | Create order & checkout       | Customer Only           |
-| `PATCH`     | `/order/:id/in-progress`    | Mark order processing         | Vendor Only             |
-| `PATCH`     | `/order/:id/delivered`      | Mark order delivered          | Vendor Only             |
-| `PATCH`     | `/order/:id/cancel`         | Cancel unpaid order           | Customer Only           |
+| HTTP Method | Endpoint                 | Description                  | Authentication Required |
+| ----------- | ------------------------ | ---------------------------- | ----------------------- |
+| `GET`       | `/order`                 | List vendor orders           | Vendor Only             |
+| `GET`       | `/order/userOrders`      | List customer orders         | Customer Only           |
+| `GET`       | `/order/singleOrder/:id` | Get order details (vendor)   | Vendor Only             |
+| `GET`       | `/order/userOrder/:id`   | Get order details (customer) | Customer Only           |
+| `POST`      | `/order/create`          | Create order & checkout      | Customer Only           |
+| `PATCH`     | `/order/:id/in-progress` | Mark order processing        | Vendor Only             |
+| `PATCH`     | `/order/:id/delivered`   | Mark order delivered         | Vendor Only             |
+| `PATCH`     | `/order/:id/cancel`      | Cancel unpaid order          | Customer Only           |
 
 </details>
 
 <details>
 <summary><b>💳 Click to view Payment Webhooks</b></summary>
 
-| HTTP Method | Endpoint   | Description               | Authentication Required |
-| ----------- | ---------- | ------------------------- | ----------------------- |
-| `POST`      | `/webhook` | Stripe payment updates    | Stripe Signature        |
+| HTTP Method | Endpoint   | Description            | Authentication Required |
+| ----------- | ---------- | ---------------------- | ----------------------- |
+| `POST`      | `/webhook` | Stripe payment updates | Stripe Signature        |
 
 </details>
 
@@ -596,11 +597,11 @@ FAILED    → Payment declined or session expired
 
 ### Webhook Events Handled
 
-| Event                                | Action                                    |
-| ------------------------------------ | ----------------------------------------- |
-| `checkout.session.completed`         | Mark payment PAID, order CONFIRMED        |
-| `checkout.session.expired`           | Mark payment FAILED, restore stock        |
-| `checkout.session.async_payment_failed` | Mark payment FAILED, restore stock     |
+| Event                                   | Action                             |
+| --------------------------------------- | ---------------------------------- |
+| `checkout.session.completed`            | Mark payment PAID, order CONFIRMED |
+| `checkout.session.expired`              | Mark payment FAILED, restore stock |
+| `checkout.session.async_payment_failed` | Mark payment FAILED, restore stock |
 
 ### Local Webhook Testing
 
@@ -626,11 +627,14 @@ STRIPE_WEBHOOK_SECRET_KEY=whsec_xxxxxxxxxxxxx
 ```typescript
 // 1. Client sends multipart/form-data
 const formData = new FormData();
-formData.append('file', imageFile);
-formData.append('data', JSON.stringify({
-  name: 'Product Name',
-  price: 99.99
-}));
+formData.append("file", imageFile);
+formData.append(
+  "data",
+  JSON.stringify({
+    name: "Product Name",
+    price: 99.99,
+  }),
+);
 
 // 2. Multer processes upload
 // 3. Cloudinary stores file
@@ -821,12 +825,12 @@ vercel --prod
 
 <div align="center">
 
-| Resource              | URL                                                                        |
-| --------------------- | -------------------------------------------------------------------------- |
-| 🌐 **Live API**       | [lorvic-api.vercel.app](https://lorvic-api.vercel.app/)                   |
-| 💻 **Client App**     | [lorvic-official.vercel.app](https://lorvic-official.vercel.app/)         |
-| 🗄️ **Server Repo**   | [GitHub - Server](https://github.com/zahid-official/milestone-18-server)  |
-| 📱 **Client Repo**    | [GitHub - Client](https://github.com/zahid-official/milestone-18-client)  |
+| Resource           | URL                                                                      |
+| ------------------ | ------------------------------------------------------------------------ |
+| 🌐 **Live API**    | [lorvic-api.vercel.app](https://lorvic-api.vercel.app/)                  |
+| 💻 **Client App**  | [lorvic-official.vercel.app](https://lorvic-official.vercel.app/)        |
+| 🗄️ **Server Repo** | [GitHub - Server](https://github.com/zahid-official/milestone-18-server) |
+| 📱 **Client Repo** | [GitHub - Client](https://github.com/zahid-official/milestone-18-client) |
 
 </div>
 
@@ -855,11 +859,5 @@ Contributions make the open source community amazing! Any contributions you make
 </br>
 
 <div align="center">
-  
-Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for more information.
-
-**[⬆ Back to Top](#lorvic-api)**
-
-Made with ❤️ by [Zahid Official](https://github.com/zahid-official)
-
+Lorvic API - A enterprise-grade multi-vendor e-commerce platform backend built with edge technologies and best practices
 </div>
