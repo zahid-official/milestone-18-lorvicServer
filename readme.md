@@ -20,7 +20,7 @@
 
 <div align="center">
     
-  [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?style=for-the-badge)](https://github.com/zahid-official/milestone-18-server)
+  [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?style=for-the-badge)](https://github.com/zahid-official/milestone-18-lorvicServer)
   [![Node.js](https://img.shields.io/badge/Node.js-18.x-3C873A.svg?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
   [![MongoDB](https://img.shields.io/badge/MongoDB-6.0-47A248.svg?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
@@ -32,7 +32,7 @@
   [![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black.svg?style=for-the-badge&logo=vercel)](https://vercel.com)
   [![Stripe](https://img.shields.io/badge/Stripe-008CDD.svg?style=for-the-badge&logo=stripe&logoColor=white)](https://stripe.com/)
   [![License](https://img.shields.io/badge/license-MIT-22333b.svg?style=for-the-badge)](LICENSE)
-  [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-0081a7.svg?style=for-the-badge)](https://github.com/zahid-official/milestone-18-server/pulls)
+  [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-0081a7.svg?style=for-the-badge)](https://github.com/zahid-official/milestone-18-lorvicServer/pulls)
 </div>
 
 ## ✨ Features
@@ -213,8 +213,8 @@ graph TB
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/zahid-official/milestone-18-server.git
-cd milestone-18-server
+git clone https://github.com/zahid-official/milestone-18-lorvicServer.git
+cd milestone-18-lorvicServer
 
 # 2. Install dependencies (pnpm recommended)
 pnpm install
@@ -741,7 +741,7 @@ lorvic-backend/
 
 <div>
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/zahid-official/milestone-18-server)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/zahid-official/milestone-18-lorvicServer)
 
 </div>
 
@@ -829,7 +829,7 @@ vercel --prod
 | ------------------ | ------------------------------------------------------------------------ |
 | 🌐 **Live API**    | [lorvic-api.vercel.app](https://lorvic-api.vercel.app/)                  |
 | 💻 **Client App**  | [lorvic-official.vercel.app](https://lorvic-official.vercel.app/)        |
-| 🗄️ **Server Repo** | [GitHub - Server](https://github.com/zahid-official/milestone-18-server) |
+| 🗄️ **Server Repo** | [GitHub - Server](https://github.com/zahid-official/milestone-18-lorvicServer) |
 | 📱 **Client Repo** | [GitHub - Client](https://github.com/zahid-official/milestone-18-client) |
 
 </div>
@@ -859,5 +859,5 @@ Contributions make the open source community amazing! Any contributions you make
 </br>
 
 <div align="center">
-Lorvic API - A enterprise-grade multi-vendor e-commerce platform backend built with edge technologies and best practices
+Lorvic API - A enterprise-grade multi-vendor e-commerce platform backend.
 </div>
