@@ -825,10 +825,10 @@ vercel --prod
 
 <div align="center">
 
-| Resource           | URL                                                                      |
-| ------------------ | ------------------------------------------------------------------------ |
-| 🌐 **Live API**    | [lorvic-api.vercel.app](https://lorvic-api.vercel.app/)                  |
-| 💻 **Client App**  | [lorvic-official.vercel.app](https://lorvic-official.vercel.app/)        |
+| Resource           | URL                                                                            |
+| ------------------ | ------------------------------------------------------------------------------ |
+| 🌐 **Live API**    | [lorvic-api.vercel.app](https://lorvic-api.vercel.app/)                        |
+| 💻 **Client App**  | [lorvic-official.vercel.app](https://lorvic-official.vercel.app/)              |
 | 🗄️ **Server Repo** | [GitHub - Server](https://github.com/zahid-official/milestone-18-lorvicServer) |
 | 📱 **Client Repo** | [GitHub - Client](https://github.com/zahid-official/milestone-18-lorvicClient) |
 
@@ -859,5 +859,5 @@ Contributions make the open source community amazing! Any contributions you make
 </br>
 
 <div align="center">
-Lorvic API - A enterprise-grade multi-vendor e-commerce platform backend.
+<p><b>Lorvic API</b> - <i>An enterprise-grade multi-vendor e-commerce platform backend solution.</i></p>
 </div>
